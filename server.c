@@ -1,6 +1,18 @@
-//#include "ft_printf/ft_printf.h"
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   server.c                                           :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: alaakson <alaakson@student.hive.fi>        +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/08/02 13:29:08 by alaakson          #+#    #+#             */
+/*   Updated: 2024/08/02 13:29:11 by alaakson         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "minitalk.h"
 
+/*
 char *letter_to_string(char const *s1, char const letter)
 {
     int j;
@@ -32,11 +44,7 @@ void    signal_handler(int signum)
     final = NULL;
 
     if (!final)
-    {
         final = ft_strdup("");
-        if (!final)
-            return ;
-    }
     if (signum == SIGUSR1)
         result |= (1 << (7 - counter));
     counter++;
@@ -45,9 +53,7 @@ void    signal_handler(int signum)
         final = letter_to_string(final, result);
         if (result == '\0')
         {
-          //  ft_printf("%s\n", final);
-            write(1, final, ft_strlen(final));
-            write(1, "\n", 1);
+            ft_printf("%s\n", final);
             free (final),
             final = NULL;
         }
@@ -56,7 +62,7 @@ void    signal_handler(int signum)
     }
 }
 
-/*void    print_error(const char *msg)
+void    print_error(const char *msg)
 {
     const char *error_msg;
 
@@ -66,6 +72,8 @@ void    signal_handler(int signum)
     write(STDERR_FILENO, error_msg, ft_strlen(error_msg));
     write(STDERR_FILENO, "\n", 1);
 }
+
+
 
 int main()
 {
@@ -87,21 +95,42 @@ int main()
     return (1);
    }
 
-   ft_printf("Server PID: [%d]\n", getpid());
+   ft_printf("Server PID Is Now: [%d]\n", getpid());
    while (1)
         pause();
     return (0);
 }*/
 
-int	main(void)
+void handler(int sig) 
 {
-	ft_printf("Welcome To Alaakson's Server!\n");
-	ft_printf("The Server PID is now: %d\n", getpid());
-	while (1)
-	{
-		signal(SIGUSR2, signal_handler);
-		signal(SIGUSR1, signal_handler);
-		pause();
-	}
-	return (0);
+    static char g_char = 0;
+    static int g_bit = 0;
+    g_char |= (sig == SIGUSR2) << g_bit;
+    g_bit++;
+    if (g_bit == 8) {
+        if (g_char == '\0') { // End of message
+            ft_printf("\n");
+        } else {
+            write(1, &g_char, 1);
+        }
+        g_char = 0;
+        g_bit = 0;
+    }
+}
+
+int main() 
+{
+    ft_printf ("Hello and Welcome To The Server\n");
+    struct sigaction sa;
+    sa.sa_handler = handler;
+    sa.sa_flags = SA_RESTART;
+    sigemptyset(&sa.sa_mask);
+    sigaction(SIGUSR1, &sa, NULL);
+    sigaction(SIGUSR2, &sa, NULL);
+
+    ft_printf("The Server PID: %d\n", getpid());
+    while (1) {
+        pause();
+    }
+    return 0;
 }
