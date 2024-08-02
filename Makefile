@@ -1,30 +1,38 @@
-NAME = libftprintf.a
+NAME_CLIENT = client
+NAME_SERVER = server
 
-CC = cc
-SRC = ft_print_hex.c \
-		ft_print_i_d.c \
-		ft_print_p.c \
-		ft_print_u.c \
-		ft_printf.c \
-		ft_print_utils.c  
+SOURCES = client.c server.c utils.c
+OBJS = $(SOURCES:.c=.o)
 
-O_FILES = $(SRC:%.c=%.o)
-CFLAGS = -Wall -Wextra -Werror
+CFLAGS = -Werror -Wextra -Wall -I$(PRINTF)/headers
+CC = gcc
+LDFLAGS = -L$(PRINTF) -lftprintf
 
-all: $(NAME)
+PRINTF = ft_printf
 
-$(NAME):	$(O_FILES)
-	ar -rcs $(NAME) $(O_FILES)
+all: $(NAME_CLIENT) $(NAME_SERVER)
+
+$(NAME_CLIENT): client.o utils.o
+	@make -C $(PRINTF)
+	$(CC) $(CFLAGS) client.o utils.o $(LDFLAGS) -o $(NAME_CLIENT)
+
+$(NAME_SERVER): server.o utils.o
+	@make -C $(PRINTF)
+	$(CC) $(CFLAGS) server.o utils.o $(LDFLAGS) -o $(NAME_SERVER)
 
 %.o: %.c
-	$(CC)	$(CFLAGS)  -c $< -o $@
+	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	rm -f $(O_FILES)
+	@rm -f *.o
+	@make -C $(PRINTF) clean
+	@echo "Object files cleaned."
 
 fclean: clean
-	rm -f $(NAME)
+	@rm -f $(NAME_CLIENT) $(NAME_SERVER)
+	@make -C $(PRINTF) fclean
+	@echo "All cleaned."
 
 re: fclean all
 
-.PHONY: all clean fclean re 
+.PHONY: all clean fclean re
